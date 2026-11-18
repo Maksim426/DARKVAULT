@@ -1,0 +1,9 @@
+{
+  "enabled": {
+    "quick_boost_example.py": false,
+    "custom_relic_example.py": false,
+    "abyss_vortex_pack.py": true,
+    "coop_sync_blessings.py": true,
+    "stealth_phantom_challenge.py": true
+  }
+}

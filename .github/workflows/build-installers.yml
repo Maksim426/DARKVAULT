@@ -1,0 +1,251 @@
+name: Build Windows, Linux & Android Releases
+
+on:
+  workflow_dispatch:
+  push:
+
+concurrency:
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-windows:
+    name: Windows (.EXE)
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r GAME/requirements.txt pyinstaller
+
+      - name: Build Windows DarkVault.exe
+        run: |
+          python "Windows installer/build_windows.py" --exe-only --clean
+
+      - name: Verify Windows artifact
+        shell: pwsh
+        run: |
+          if (!(Test-Path "dist/windows/DarkVault.exe")) {
+            throw "dist/windows/DarkVault.exe was not generated"
+          }
+          $item = Get-Item "dist/windows/DarkVault.exe"
+          if ($item.Length -lt 1048576) {
+            throw "dist/windows/DarkVault.exe is unexpectedly small: $($item.Length) bytes"
+          }
+          $item | Format-List Name, Length
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarkVault-Windows
+          path: dist/windows/DarkVault.exe
+          if-no-files-found: error
+          retention-days: 90
+
+  build-linux:
+    name: Linux (Binary)
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r GAME/requirements.txt pyinstaller
+
+      - name: Build Linux DarkVault binary
+        run: |
+          python "Linux installer/build_linux.py" --bin-only --clean
+          chmod +x dist/linux/DarkVault
+          test -x dist/linux/DarkVault
+          file dist/linux/DarkVault
+          ls -lh dist/linux/DarkVault
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarkVault-Linux
+          path: dist/linux/DarkVault
+          if-no-files-found: error
+          retention-days: 90
+
+  build-android:
+    name: Android (.APK)
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install system dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            git zip unzip openjdk-17-jdk python3-pip python3-setuptools python3-venv \
+            build-essential ccache cmake autoconf automake pkg-config lld \
+            libffi-dev libssl-dev zlib1g-dev libltdl-dev libtool libsqlite3-dev \
+            libncurses5 libncursesw5 libtinfo6 \
+            libstdc++6:i386 libgcc1:i386 zlib1g:i386
+
+      - name: Create virtualenv and install Buildozer
+        run: |
+          python -m venv "${{ github.workspace }}/.build_venv_android"
+          "${{ github.workspace }}/.build_venv_android/bin/python" -m pip install --upgrade "pip<25" "setuptools<72" wheel
+          "${{ github.workspace }}/.build_venv_android/bin/python" -m pip install "buildozer==1.5.0" "cython==0.29.37" Pillow packaging
+
+      - name: Prepare Android assets
+        run: |
+          "${{ github.workspace }}/.build_venv_android/bin/python" "Android installer/prepare_android.py" --assets-only
+
+      - name: Cache Buildozer global directory & signing keystore
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.android
+          key: buildozer-sdk-v2026-v5-${{ hashFiles('buildozer.spec', 'Android installer/prepare_android.py') }}
+          restore-keys: |
+            buildozer-sdk-v2026-v5-
+            buildozer-sdk-v2026-v4-
+            buildozer-sdk-v2026-
+
+      - name: Build Android APK
+        run: |
+          export VIRTUAL_ENV="${{ github.workspace }}/.build_venv_android"
+          export PATH="$VIRTUAL_ENV/bin:$PATH"
+          export ANDROID_ACCEPT_LICENSE=1
+          "$VIRTUAL_ENV/bin/buildozer" -v android debug
+
+      - name: Collect & verify Android APK
+        run: |
+          "${{ github.workspace }}/.build_venv_android/bin/python" "Android installer/prepare_android.py" --collect-only
+          ls -lh dist/android/DarkVault.apk
+          unzip -tq dist/android/DarkVault.apk
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarkVault-Android
+          path: dist/android/DarkVault.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-android-log
+          path: .buildozer/android/platform/build.log
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-linux, build-android]
+    if: ${{ success() && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || github.ref_name == github.event.repository.default_branch || github.ref_name == 'main' || github.ref_name == 'master') }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: DarkVault-Windows
+          path: release_files/windows
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: DarkVault-Linux
+          path: release_files/linux
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: DarkVault-Android
+          path: release_files/android
+
+      - name: Prepare & verify all release assets
+        run: |
+          mkdir -p release_files/out
+          cp -f release_files/windows/DarkVault.exe release_files/out/DarkVault.exe
+          cp -f release_files/linux/DarkVault release_files/out/DarkVault
+          chmod +x release_files/out/DarkVault
+          cp -f release_files/android/DarkVault.apk release_files/out/DarkVault.apk
+
+          for f in DarkVault.exe DarkVault DarkVault.apk; do
+            if [ ! -s "release_files/out/$f" ]; then
+              echo "Missing or empty release file: $f"
+              exit 1
+            fi
+          done
+          ls -lh release_files/out/
+
+          {
+            echo "### Готовые сборки DarkVault"
+            echo "| Платформа | Файл | Размер |"
+            echo "|---|---|---|"
+            echo "| Windows | \`DarkVault.exe\` | $(du -h release_files/out/DarkVault.exe | cut -f1) |"
+            echo "| Linux | \`DarkVault\` | $(du -h release_files/out/DarkVault | cut -f1) |"
+            echo "| Android | \`DarkVault.apk\` | $(du -h release_files/out/DarkVault.apk | cut -f1) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Point 'latest' tag to current commit & clean old setup assets
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/latest" -f sha="${{ github.sha }}" >/dev/null 2>&1 || true
+          gh release delete-asset latest DarkVault_Setup.exe -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+          gh release delete-asset latest DarkVault_Setup.sh -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+
+      - name: Publish Release (EXE, Linux binary, Android APK)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'Latest Build (Windows .exe · Linux · Android .apk)' }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          body: |
+            ## Подземелье Тьмы · DarkVault
+
+            Готовые сборки игры:
+            - **Android**: `DarkVault.apk` — скачайте и установите на Android
+            - **Windows**: `DarkVault.exe` — скачайте и запустите
+            - **Linux**: `DarkVault` — выполните `chmod +x DarkVault && ./DarkVault`
+          files: |
+            release_files/out/DarkVault.exe
+            release_files/out/DarkVault
+            release_files/out/DarkVault.apk

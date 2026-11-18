@@ -1,0 +1,42 @@
+[
+  {
+    "id": "vault_genesis",
+    "seed": "DV-GENESIS-001",
+    "title_ru": "Серия #001 · Первый разлом",
+    "title_en": "Seed #001 · First Breach",
+    "desc_ru": "Сбалансированный забег с лавкой и 2 пьедесталами на 1-м ярусе.",
+    "desc_en": "Balanced layout featuring early shop access and dual Floor 1 pedestals.",
+    "author": "DarkVault Core",
+    "recommended_hero": "isaac"
+  },
+  {
+    "id": "shadow_trial",
+    "seed": "DV-VEIL-404",
+    "title_ru": "Серия #404 · Испытание Тени",
+    "title_en": "Seed #404 · Veil Trial",
+    "desc_ru": "Густые коридоры и тайные комнаты, идеально для засад из невидимости [V].",
+    "desc_en": "Dense corridors and secret crypts tailored for [V] stealth ambush routes.",
+    "author": "NightArchivist",
+    "recommended_hero": "veil"
+  },
+  {
+    "id": "coop_crucible",
+    "seed": "DV-COOP-808",
+    "title_ru": "Серия #808 · Парный Тигель",
+    "title_en": "Seed #808 · Twin Crucible",
+    "desc_ru": "Расширенный ярус с двойными боевыми залами для коопа на одном экране.",
+    "desc_en": "Expanded dungeon layout crafted for intense 2-player same-screen co-op.",
+    "author": "ChronoSmith",
+    "recommended_hero": "maelstrom"
+  },
+  {
+    "id": "boss_cataclysm",
+    "seed": "DV-ASH-999",
+    "title_ru": "Серия #999 · Пепельный Катаклизм",
+    "title_en": "Seed #999 · Ash Cataclysm",
+    "desc_ru": "Усиленные стражи и высокий шанс Сделки Тьмы после босса.",
+    "desc_en": "Fierce wardens with elevated Devil Pact frequency after boss encounters.",
+    "author": "AbyssRunner",
+    "recommended_hero": "azazel"
+  }
+]

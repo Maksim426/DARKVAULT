@@ -1,0 +1,11 @@
+{
+  "name": "darkvault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx -y serve . -l 3000",
+    "start": "npx -y serve . -l 3000",
+    "build": "python3 -m py_compile GAME/*.py \"Windows installer\"/*.py \"Linux installer\"/*.py \"Android installer\"/*.py",
+    "lint": "python3 -m py_compile GAME/*.py \"Windows installer\"/*.py \"Linux installer\"/*.py \"Android installer\"/*.py"
+  }
+}

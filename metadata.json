@@ -1,0 +1,8 @@
+{
+  "name": "Remix DARKVAULT",
+  "description": "An Isaac-inspired top-down roguelike dungeon crawler featuring dual-stick tear shooting, procedural basement rooms, distinct monster AI, items and boss encounters.",
+  "prompt": "DarkVault roguelike",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DarkVault — Подземелье Тьмы · Редактор кода &amp; Releases</title>
+  <meta name="description" content="Процедурный монохромный нуар-рогалик DarkVault: 22 героя, 123 артефакта, 66 боссов, 7 режимов, локальный и сетевой кооператив, редактор кода модов с ИИ-агентом и кроссплатформенные сборки." />
+  <meta property="og:title" content="DarkVault — Подземелье Тьмы" />
+  <meta property="og:description" content="Процедурный монохромный нуар-рогалик DarkVault: 22 героя, 123 артефакта, 66 боссов, 7 режимов, кооператив и встроенный IDE-редактор модов." />
+  <style>
+    :root {
+      --bg: #070707;
+      --panel: #101010;
+      --panel-alt: #151515;
+      --border: #3a3a3a;
+      --text: #f2f2f2;
+      --muted: #a6a6a6;
+      --dim: #7a7a7a;
+      --accent: #e5e5e5;
+      --ok: #9ed9b1;
+      --err: #e59898;
+      --warn: #e5c687;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background:
+        radial-gradient(ellipse 900px 420px at 50% -80px, rgba(255, 255, 255, 0.065), transparent 70%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "DejaVu Sans", sans-serif;
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 56px;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .hero {
+      background: linear-gradient(180deg, #131313 0%, var(--panel) 100%);
+      border: 1px solid #2e2e2e;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+    .hero-img {
+      width: 100%;
+      max-height: 270px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .hero-body {
+      padding: 24px 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    h1 {
+      font-size: clamp(22px, 3.2vw, 31px);
+      letter-spacing: 0.05em;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14.5px;
+      max-width: 78ch;
+      line-height: 1.6;
+    }
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px 0 4px;
+      border-top: 1px solid #222222;
+      border-bottom: 1px solid #222222;
+    }
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid #242424;
+      border-radius: 8px;
+    }
+    .stat-val {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+      color: #f6f6f6;
+    }
+    .stat-lbl {
+      font-size: 11.5px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12.5px;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: transform 0.14s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-sm {
+      padding: 7px 12px;
+      font-size: 12px;
+    }
+    .btn-primary {
+      background: #f4f4f4;
+      color: #090909;
+      border: 1px solid #ffffff;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.12);
+    }
+    .btn-primary:hover { background: #ffffff; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.18); }
+    .btn-secondary {
+      background: #171717;
+      color: var(--text);
+      border: 1px solid #333333;
+    }
+    .btn-secondary:hover { background: #222222; border-color: #6b6b6b; transform: translateY(-1px); }
+    .btn-danger {
+      background: #231414;
+      color: var(--err);
+      border: 1px solid #593333;
+    }
+    .btn-danger:hover { background: #331b1b; border-color: #8c4a4a; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: linear-gradient(180deg, #121212 0%, var(--panel) 100%);
+      border: 1px solid #2c2c2c;
+      border-radius: 12px;
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+    .portal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 4px 0;
+      border-top: 1px solid #1f1f1f;
+      font-size: 12.5px;
+      color: var(--dim);
+    }
+    .portal-footer a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px dotted #555;
+    }
+    .portal-footer a:hover { color: #ffffff; border-bottom-color: #ffffff; }
+    @media (max-width: 780px) {
+      .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .actions { grid-template-columns: 1fr; }
+    }
+    .card h2 {
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .card ul {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    code {
+      background: #1a1a1a;
+      border: 1px solid #2e2e2e;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: #e6e6e6;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--dim);
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    /* Mod Loader & Code Editor UI Section */
+    .mod-loader-section {
+      background: linear-gradient(180deg, #121212 0%, var(--panel) 100%);
+      border: 1px solid #2c2c2c;
+      border-radius: 14px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+    .mod-loader-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .mod-loader-header h2 {
+      font-size: 17px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .mod-toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .mod-search {
+      flex: 1;
+      min-width: 210px;
+      background: #181818;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13.5px;
+      outline: none;
+    }
+    .mod-search:focus { border-color: #888; }
+    .mod-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 540px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .mod-item {
+      background: var(--panel-alt);
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      transition: border-color 0.15s ease;
+    }
+    .mod-item:hover { border-color: #4f4f4f; }
+    .mod-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      text-align: left;
+      padding: 0;
+      flex: 1;
+      min-width: 0;
+      color: inherit;
+      font: inherit;
+    }
+    .mod-title-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .mod-title {
+      font-weight: 700;
+      font-size: 14.5px;
+      color: #f2f2f2;
+      text-decoration: underline dotted #777;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .mod-info:hover .mod-title { color: #ffffff; }
+    .mod-tag {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      border: 1px solid #383838;
+      background: #1c1c1c;
+      color: var(--muted);
+    }
+    .mod-desc {
+      font-size: 13px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .mod-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .contacts-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .contacts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .contact-box {
+      background: var(--panel-alt);
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .contact-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--dim);
+    }
+    .contact-value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      text-decoration: none;
+    }
+    .contact-value:hover { text-decoration: underline; }
+    .contacts-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #2b2b2b;
+      transition: .2s;
+      border-radius: 24px;
+      border: 1px solid #444;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #bfbfbf;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #f2f2f2; border-color: #fff; }
+    input:checked + .slider:before { transform: translateX(22px); background-color: #0b0b0b; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: #121212;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-header h3 { font-size: 15.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .modal-close {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: #fff; border-color: #444; }
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      background: #101010;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .editor-snippets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .code-textarea {
+      width: 100%;
+      min-height: 290px;
+      background: #080808;
+      color: #efefef;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      tab-size: 4;
+      outline: none;
+    }
+    .code-textarea:focus { border-color: #8a8a8a; }
+    .editor-status {
+      padding: 9px 12px;
+      border-radius: 6px;
+      border: 1px solid #2b2b2b;
+      background: #141414;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .editor-status.valid { border-color: #2f523b; color: var(--ok); }
+    .editor-status.invalid { border-color: #663636; color: var(--err); }
+    .modal-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .modal-footer-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .field-input {
+      width: 100%;
+      background: #181818;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 13.5px;
+      outline: none;
+    }
+    .field-input:focus { border-color: #888; }
+
+    @media (max-width: 640px) {
+      body { padding: 14px 10px 32px; }
+      .hero-img { max-height: 190px; }
+      .hero-body, .mod-loader-section, .contacts-section { padding: 16px; }
+      .actions { flex-direction: column; }
+      .actions .btn { width: 100%; }
+      .mod-toolbar { flex-direction: column; align-items: stretch; }
+      .mod-item { flex-direction: column; align-items: stretch; }
+      .mod-controls { justify-content: space-between; }
+      .modal-footer { flex-direction: column; align-items: stretch; }
+      .modal-footer-group { justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <img src="./preview.jpg" alt="Подземелье Тьмы · DarkVault" class="hero-img" />
+      <div class="hero-body">
+        <h1>Подземелье Тьмы · DarkVault</h1>
+        <p class="subtitle">
+          Процедурный монохромный нуар-рогалик с мягкими динамическими тенями по силуэту, 3-ударным ближним комбо с отражением снарядов, процедурным саундтреком (OST), адаптивным широким режимом на Android (60 FPS) и встроенным IDE-редактором модов.
+        </p>
+        <div class="stats-strip" aria-label="Ключевые показатели DarkVault">
+          <div class="stat-cell">
+            <span class="stat-val">22</span>
+            <span class="stat-lbl">Героя</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-val">123</span>
+            <span class="stat-lbl">Артефакта</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-val">66</span>
+            <span class="stat-lbl">Уникальных боссов</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-val">60 FPS</span>
+            <span class="stat-lbl">Android · OST</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/Maksim426/DARKVAULT/releases/latest/download/DarkVault.apk" target="_blank" rel="noopener noreferrer">
+            Скачать .APK (Android)
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/Maksim426/DARKVAULT/releases/latest/download/DarkVault.exe" target="_blank" rel="noopener noreferrer">
+            Скачать .EXE (Windows)
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/Maksim426/DARKVAULT/releases/latest/download/DarkVault" target="_blank" rel="noopener noreferrer">
+            Скачать DarkVault (Linux)
+          </a>
+          <a class="btn btn-secondary" href="./README.md">Документация (README)</a>
+        </div>
+        <div class="meta" id="apk-meta">Релизы: GitHub Latest (Android .APK · Windows .EXE · Linux) · Python 3.10+ / Pygame 2.5+</div>
+      </div>
+    </section>
+
+    <!-- Code Editor UI Section -->
+    <section class="mod-loader-section" aria-labelledby="code-editor-heading">
+      <div class="mod-loader-header">
+        <h2 id="code-editor-heading">Редактор кода · Code Editor</h2>
+        <div class="header-controls">
+          <span class="meta" id="mod-status-text">Активных модов: 5 / 5</span>
+          <button type="button" id="btn-reset-mods" class="btn btn-secondary btn-sm">Сбросить моды</button>
+          <button type="button" id="btn-open-help" class="btn btn-secondary btn-sm">Справка API</button>
+        </div>
+      </div>
+      <div class="mod-toolbar">
+        <label for="mod-search-input" class="sr-only">Поиск модов</label>
+        <input type="text" id="mod-search-input" class="mod-search" placeholder="Поиск скриптов и модов по названию..." />
+        <button type="button" id="btn-install-mod" class="btn btn-secondary">+ Установить мод (.py)</button>
+      </div>
+      <div class="mod-list" id="mod-loader-list" data-testid="mod-list">
+        <!-- populated via js -->
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Android (.APK) · Широкий режим</h2>
+        <ul>
+          <li>Скачайте <code>DarkVault.apk</code> на телефон Android и разрешите установку из неизвестных источников.</li>
+          <li>Широкий горизонтальный формат (<code>Авто</code>, <code>19.5:9</code>, <code>20:9</code>, <code>21:9</code>) заполняет весь экран телефона без чёрных полос.</li>
+          <li>Мультитач-стики, кнопки рывка, бомбы и реликвии подстраиваются под соотношение сторон автоматически.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Windows (.EXE), Linux &amp; Редактор кода</h2>
+        <ul>
+          <li>Workflow <code>.github/workflows/build-installers.yml</code> собирает <code>DarkVault.exe</code>, <code>DarkVault</code> (Linux) и <code>DarkVault.apk</code>.</li>
+          <li>Встроенный <strong>Редактор кода</strong> для ПК: подсветка Python, Undo/Redo, поиск <code>Ctrl+F</code>, проверка синтаксиса и ИИ-агент.</li>
+          <li>Атомарные сохранения (<code>.tmp</code> + <code>os.replace</code>) и стабильный выход для Linux (Arch / Hyprland).</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Локальная сборка</h2>
+        <ul>
+          <li>Android: <code>./Android installer/BUILD_ANDROID_APK.sh</code></li>
+          <li>Linux: <code>./Linux installer/BUILD_LINUX.sh</code></li>
+          <li>Windows: <code>Windows installer\BUILD_WINDOWS.bat</code></li>
+        </ul>
+      </article>
+    </section>
+
+    <footer class="portal-footer">
+      <span>DarkVault · © 2026 Maksim Polienko</span>
+      <span><a href="./LICENSE">Proprietary Source-Available License</a> · <a href="./README.md">README</a></span>
+    </footer>
+  </main>
+
+  <!-- Interactive Mod Code Editor Modal -->
+  <div class="modal-overlay" id="mod-modal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-mod-title">
+      <div class="modal-header">
+        <h3 id="modal-mod-title">Редактор кода мода</h3>
+        <button type="button" class="modal-close" id="btn-close-mod-modal" aria-label="Закрыть окно кода">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="editor-snippets">
+          <span class="meta">Вставить шаблон:</span>
+          <button type="button" class="btn btn-secondary btn-sm" data-snippet="item">+ Артефакт</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-snippet="hero">+ Герой</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-snippet="hook">+ Хук комнаты</button>
+        </div>
+        <label for="modal-editor-textarea" class="sr-only">Редактируемый исходный код мода Python</label>
+        <textarea id="modal-editor-textarea" class="code-textarea" spellcheck="false"></textarea>
+        <div id="modal-editor-status" class="editor-status" aria-live="polite"></div>
+        <div class="modal-footer">
+          <div class="modal-footer-group">
+            <button type="button" id="btn-download-mod" class="btn btn-secondary btn-sm">Скачать .py</button>
+            <button type="button" id="btn-delete-mod" class="btn btn-danger btn-sm">Удалить</button>
+          </div>
+          <div class="modal-footer-group">
+            <button type="button" id="btn-cancel-mod-modal" class="btn btn-secondary">Отмена</button>
+            <button type="button" id="btn-save-mod" class="btn btn-primary">Сохранить и применить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Help Modal -->
+  <div class="modal-overlay" id="help-modal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 id="help-modal-title">Справка Mod API · Редактор кода</h3>
+        <button type="button" class="modal-close" id="btn-close-help-modal" aria-label="Закрыть справку">&times;</button>
+      </div>
+      <div class="modal-body" style="background:#141414;">
+        <p style="color:var(--muted); font-size:14px;">Встроенный редактор кода модов DarkVault поддерживает локальное редактирование Python-скриптов, шаблоны артефактов и героев, проверку синтаксиса и перехват игровых событий.</p>
+        <div class="contact-box">
+          <span class="contact-label">Доступные хуки</span>
+          <span class="contact-value">on_register · on_player_init · on_run_start · on_room_enter · on_room_clear · on_new_floor</span>
+        </div>
+        <div class="contact-box">
+          <span class="contact-label">Регистрация контента</span>
+          <span class="contact-value">api.add_item({...}) · api.add_hero({...}) · api.log(...)</span>
+        </div>
+        <div class="contact-box">
+          <span class="contact-label">Хранение данных</span>
+          <span class="contact-value">Локально в браузере (localStorage) и в папке модов игры</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px;">
+          <button type="button" id="btn-close-help-footer" class="btn btn-primary">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install Mod Modal -->
+  <div class="modal-overlay" id="install-modal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="install-modal-title" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 id="install-modal-title">Установка нового мода (.py)</h3>
+        <button type="button" class="modal-close" id="btn-close-install-modal" aria-label="Закрыть установку мода">&times;</button>
+      </div>
+      <div class="modal-body" style="background:#141414;">
+        <p style="color:var(--muted); font-size:14px;">Выберите файл скрипта мода на компьютере или вставьте Python-код:</p>
+        <div>
+          <label for="mod-filename-input" class="meta" style="display:block; margin-bottom:4px;">Имя файла (.py, необязательно):</label>
+          <input type="text" id="mod-filename-input" class="field-input" placeholder="например: shadow_blade.py" />
+        </div>
+        <div>
+          <label for="mod-file-input" class="sr-only">Файл мода (.py)</label>
+          <input type="file" id="mod-file-input" accept=".py" style="color:#f2f2f2; font-size:13px;" />
+        </div>
+        <label for="mod-code-textarea" class="sr-only">Код мода Python</label>
+        <textarea id="mod-code-textarea" class="code-textarea" style="min-height:180px;" placeholder="MOD_NAME = &quot;My Mod&quot;&#10;MOD_DESC = &quot;Описание...&quot;&#10;&#10;def on_register(api):&#10;    api.log(&quot;Ready&quot;)"></textarea>
+        <div id="install-error-msg" style="color:var(--err); font-size:12.5px; min-height:18px;" aria-live="polite"></div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" id="btn-cancel-install-modal" class="btn btn-secondary">Отмена</button>
+          <button type="button" id="btn-submit-install-mod" class="btn btn-primary">Установить и сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      DEFAULT_MODS,
+      CODE_SNIPPETS,
+      parseModMetadata,
+      validatePythonLikeSyntax,
+      mergeStoredMods,
+      filterModsList,
+      sanitizeModFilename,
+    } from "./web_mod_editor.mjs";
+
+    const STORAGE_KEY = "darkvault_mods_web_advanced";
+    let modsData = DEFAULT_MODS.map((m) => ({ ...m }));
+    let currentEditingFilename = null;
+    let pendingDeleteConfirm = false;
+
+    const elList = document.getElementById("mod-loader-list");
+    const elStatus = document.getElementById("mod-status-text");
+    const elSearch = document.getElementById("mod-search-input");
+    const elModModal = document.getElementById("mod-modal");
+    const elModalTitle = document.getElementById("modal-mod-title");
+    const elModalTextarea = document.getElementById("modal-editor-textarea");
+    const elModalStatus = document.getElementById("modal-editor-status");
+    const elDeleteBtn = document.getElementById("btn-delete-mod");
+    const elHelpModal = document.getElementById("help-modal");
+    const elInstallModal = document.getElementById("install-modal");
+    const elInstallFilename = document.getElementById("mod-filename-input");
+    const elInstallTextarea = document.getElementById("mod-code-textarea");
+    const elInstallErr = document.getElementById("install-error-msg");
+
+    function saveModsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(modsData));
+      } catch (_) {}
+    }
+
+    function updateStatusCounter(filteredCount) {
+      const activeCount = modsData.filter((m) => m.enabled).length;
+      if (typeof filteredCount === "number" && filteredCount !== modsData.length) {
+        elStatus.textContent = `Найдено: ${filteredCount} · Активных: ${activeCount} / ${modsData.length}`;
+      } else {
+        elStatus.textContent = `Активных модов: ${activeCount} / ${modsData.length}`;
+      }
+    }
+
+    function renderModsList() {
+      const query = elSearch.value || "";
+      const filtered = filterModsList(modsData, query);
+      elList.replaceChildren();
+
+      if (filtered.length === 0) {
+        const emptyEl = document.createElement("div");
+        emptyEl.style.cssText = "color: var(--muted); text-align: center; padding: 24px;";
+        emptyEl.textContent = "Моды по запросу не найдены";
+        elList.appendChild(emptyEl);
+        updateStatusCounter(0);
+        return;
+      }
+
+      for (const mod of filtered) {
+        const row = document.createElement("div");
+        row.className = "mod-item";
+
+        const infoBtn = document.createElement("button");
+        infoBtn.type = "button";
+        infoBtn.className = "mod-info";
+        infoBtn.setAttribute("aria-label", `Редактировать мод ${mod.title}`);
+        infoBtn.title = "Открыть в редакторе кода";
+        infoBtn.addEventListener("click", () => openModEditor(mod.filename));
+
+        const titleRow = document.createElement("div");
+        titleRow.className = "mod-title-row";
+
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "mod-title";
+        titleSpan.textContent = mod.title;
+
+        const fileMeta = document.createElement("span");
+        fileMeta.className = "meta";
+        fileMeta.textContent = `(${mod.filename})`;
+
+        const tagSpan = document.createElement("span");
+        tagSpan.className = "mod-tag";
+        tagSpan.textContent = mod.builtIn ? "Встроенный" : "Пользовательский";
+
+        titleRow.append(titleSpan, fileMeta, tagSpan);
+
+        const descSpan = document.createElement("span");
+        descSpan.className = "mod-desc";
+        descSpan.textContent = mod.desc;
+
+        infoBtn.append(titleRow, descSpan);
+
+        const controls = document.createElement("div");
+        controls.className = "mod-controls";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn btn-secondary btn-sm";
+        editBtn.textContent = "Код";
+        editBtn.setAttribute("aria-label", `Открыть код мода ${mod.title}`);
+        editBtn.addEventListener("click", () => openModEditor(mod.filename));
+
+        const switchLabel = document.createElement("label");
+        switchLabel.className = "switch";
+        switchLabel.setAttribute("aria-label", `Переключить мод ${mod.title}`);
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = Boolean(mod.enabled);
+        checkbox.addEventListener("change", () => {
+          mod.enabled = checkbox.checked;
+          saveModsToStorage();
+          updateStatusCounter(filtered.length);
+        });
+
+        const slider = document.createElement("span");
+        slider.className = "slider";
+        switchLabel.append(checkbox, slider);
+
+        controls.append(editBtn, switchLabel);
+        row.append(infoBtn, controls);
+        elList.appendChild(row);
+      }
+
+      updateStatusCounter(filtered.length);
+    }
+
+    function updateLiveSyntaxBadge(codeText) {
+      const check = validatePythonLikeSyntax(codeText);
+      if (check.valid) {
+        const hookText = check.hooks.length
+          ? `Хуки: ${check.hooks.join(", ")}`
+          : "Хуки не обнаружены (добавьте on_register / on_player_init)";
+        elModalStatus.className = "editor-status valid";
+        elModalStatus.textContent = `Синтаксис OK · ${check.lines} строк · ${hookText}`;
+      } else {
+        elModalStatus.className = "editor-status invalid";
+        elModalStatus.textContent = check.errors[0];
+      }
+      return check;
+    }
+
+    function openModEditor(filename) {
+      const mod = modsData.find((m) => m.filename === filename);
+      if (!mod) return;
+      currentEditingFilename = mod.filename;
+      pendingDeleteConfirm = false;
+      elModalTitle.textContent = `${mod.title} (${mod.filename})`;
+      elModalTextarea.value = mod.code;
+      updateLiveSyntaxBadge(mod.code);
+      if (mod.builtIn) {
+        elDeleteBtn.textContent = "Восстановить оригинал";
+        elDeleteBtn.className = "btn btn-secondary btn-sm";
+      } else {
+        elDeleteBtn.textContent = "Удалить";
+        elDeleteBtn.className = "btn btn-danger btn-sm";
+      }
+      elModModal.classList.add("open");
+      elModalTextarea.focus();
+    }
+
+    function closeModModal() {
+      elModModal.classList.remove("open");
+      currentEditingFilename = null;
+      pendingDeleteConfirm = false;
+    }
+
+    function openHelpModal() {
+      elHelpModal.classList.add("open");
+    }
+
+    function closeHelpModal() {
+      elHelpModal.classList.remove("open");
+    }
+
+    function openInstallModal() {
+      elInstallErr.textContent = "";
+      elInstallFilename.value = "";
+      elInstallTextarea.value = "";
+      document.getElementById("mod-file-input").value = "";
+      elInstallModal.classList.add("open");
+      elInstallTextarea.focus();
+    }
+
+    function closeInstallModal() {
+      elInstallModal.classList.remove("open");
+      elInstallErr.textContent = "";
+    }
+
+    // Wire events cleanly
+    elSearch.addEventListener("input", renderModsList);
+
+    elModalTextarea.addEventListener("input", () => {
+      updateLiveSyntaxBadge(elModalTextarea.value);
+    });
+
+    elModalTextarea.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const start = elModalTextarea.selectionStart;
+        const end = elModalTextarea.selectionEnd;
+        const val = elModalTextarea.value;
+        elModalTextarea.value = val.slice(0, start) + "    " + val.slice(end);
+        elModalTextarea.selectionStart = elModalTextarea.selectionEnd = start + 4;
+      }
+    });
+
+    document.querySelectorAll("[data-snippet]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-snippet");
+        const snippet = CODE_SNIPPETS[key];
+        if (!snippet) return;
+        const val = elModalTextarea.value;
+        elModalTextarea.value = val.trimEnd() + "\n" + snippet.trimStart();
+        updateLiveSyntaxBadge(elModalTextarea.value);
+        elModalTextarea.focus();
+      });
+    });
+
+    document.getElementById("btn-save-mod").addEventListener("click", () => {
+      if (!currentEditingFilename) return;
+      const mod = modsData.find((m) => m.filename === currentEditingFilename);
+      if (!mod) return;
+      const newCode = elModalTextarea.value;
+      const check = updateLiveSyntaxBadge(newCode);
+      if (!check.valid) return;
+      const meta = parseModMetadata(newCode, mod.filename);
+      mod.code = newCode;
+      mod.title = meta.title;
+      mod.desc = meta.desc;
+      saveModsToStorage();
+      renderModsList();
+      closeModModal();
+    });
+
+    document.getElementById("btn-download-mod").addEventListener("click", () => {
+      if (!currentEditingFilename) return;
+      const blob = new Blob([elModalTextarea.value], { type: "text/x-python;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentEditingFilename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 250);
+    });
+
+    elDeleteBtn.addEventListener("click", () => {
+      if (!currentEditingFilename) return;
+      const modIndex = modsData.findIndex((m) => m.filename === currentEditingFilename);
+      if (modIndex === -1) return;
+      const mod = modsData[modIndex];
+      if (mod.builtIn) {
+        const orig = DEFAULT_MODS.find((d) => d.filename === mod.filename);
+        if (orig) {
+          modsData[modIndex] = { ...orig };
+          elModalTextarea.value = orig.code;
+          elModalTitle.textContent = `${orig.title} (${orig.filename})`;
+          updateLiveSyntaxBadge(orig.code);
+          saveModsToStorage();
+          renderModsList();
+        }
+        return;
+      }
+      if (!pendingDeleteConfirm) {
+        pendingDeleteConfirm = true;
+        elDeleteBtn.textContent = "Подтвердить удаление?";
+        return;
+      }
+      modsData.splice(modIndex, 1);
+      saveModsToStorage();
+      renderModsList();
+      closeModModal();
+    });
+
+    document.getElementById("btn-reset-mods").addEventListener("click", () => {
+      modsData = DEFAULT_MODS.map((m) => ({ ...m }));
+      saveModsToStorage();
+      renderModsList();
+    });
+
+    document.getElementById("mod-file-input").addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!elInstallFilename.value.trim()) {
+        elInstallFilename.value = file.name;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        elInstallTextarea.value = String(e.target?.result || "");
+        elInstallErr.textContent = "";
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById("btn-submit-install-mod").addEventListener("click", () => {
+      const code = elInstallTextarea.value.trim();
+      if (!code) {
+        elInstallErr.textContent = "Введите или выберите Python-код мода (.py).";
+        return;
+      }
+      const check = validatePythonLikeSyntax(code);
+      if (!check.valid) {
+        elInstallErr.textContent = check.errors[0];
+        return;
+      }
+      const meta = parseModMetadata(code, elInstallFilename.value || "custom_mod.py");
+      const filename = sanitizeModFilename(
+        elInstallFilename.value || meta.title,
+        modsData.map((m) => m.filename)
+      );
+      modsData.push({
+        filename,
+        title: meta.title,
+        desc: meta.desc,
+        enabled: true,
+        builtIn: false,
+        code: elInstallTextarea.value,
+      });
+      saveModsToStorage();
+      renderModsList();
+      closeInstallModal();
+    });
+
+    document.getElementById("btn-open-help").addEventListener("click", openHelpModal);
+    document.getElementById("btn-install-mod").addEventListener("click", openInstallModal);
+    document.getElementById("btn-close-mod-modal").addEventListener("click", closeModModal);
+    document.getElementById("btn-cancel-mod-modal").addEventListener("click", closeModModal);
+    document.getElementById("btn-close-help-modal").addEventListener("click", closeHelpModal);
+    document.getElementById("btn-close-help-footer").addEventListener("click", closeHelpModal);
+    document.getElementById("btn-close-install-modal").addEventListener("click", closeInstallModal);
+    document.getElementById("btn-cancel-install-modal").addEventListener("click", closeInstallModal);
+
+    elModModal.addEventListener("click", (e) => {
+      if (e.target === elModModal) closeModModal();
+    });
+    elHelpModal.addEventListener("click", (e) => {
+      if (e.target === elHelpModal) closeHelpModal();
+    });
+    elInstallModal.addEventListener("click", (e) => {
+      if (e.target === elInstallModal) closeInstallModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (elModModal.classList.contains("open")) closeModModal();
+        if (elHelpModal.classList.contains("open")) closeHelpModal();
+        if (elInstallModal.classList.contains("open")) closeInstallModal();
+      }
+    });
+
+    // Hydrate from localStorage cleanly merging all 5 seeded mods
+    try {
+      const savedRaw = localStorage.getItem(STORAGE_KEY);
+      if (savedRaw) {
+        const parsed = JSON.parse(savedRaw);
+        modsData = mergeStoredMods(parsed, DEFAULT_MODS);
+      }
+    } catch (_) {}
+    renderModsList();
+  </script>
+</body>
+</html>

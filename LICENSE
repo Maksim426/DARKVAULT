@@ -1,0 +1,21 @@
+PROPRIETARY SOURCE-AVAILABLE LICENSE
+Copyright (c) 2026 Maksim Polienko. All rights reserved.
+
+1. GRANT OF LICENSE
+The source code of this software (the "Software") is provided publicly for educational purposes, personal gameplay, and creating user modifications ("Mods") using the built-in source code editor. You are permitted to view, study, and modify the code locally for personal, non-commercial use.
+
+2. STRICT RESTRICTIONS
+Unless you have obtained prior written permission from the Copyright Holder (Maksim Polienko), you may NOT:
+a) Claim authorship of the Software, its source code, or any original assets, nor pass them off as your own work.
+b) Sell, rent, lease, sublicense, or otherwise commercially exploit the Software, its source code, or any compiled builds/executables derived from it.
+c) Redistribute standalone copies or forks of the original game outside of official channels, even free of charge.
+
+3. USER-GENERATED CONTENT (MODS)
+Any original scripts, levels, or modifications created by users via the in-game editor remain the intellectual property of their respective creators. However, such Mods may only be distributed free of charge and must not include the core game files for standalone distribution.
+
+4. DISCLAIMER OF WARRANTY & LIABILITY FOR USER CODE
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+
+Because this Software includes an integrated source code editor capable of executing user-written code, the Copyright Holder assumes NO responsibility or liability for any damage, data loss, security breaches, or malicious actions caused by third-party scripts or Mods created and shared by users. Users execute custom code at their own risk.
+
+IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

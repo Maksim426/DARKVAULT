@@ -1,0 +1,26 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.build_venv/
+.build_venv_win/
+.build_venv_linux/
+.build_venv_android/
+.pyinstaller_build/
+.pyinstaller_spec/
+.buildozer/
+bin/
+Android installer/.buildozer/
+Android installer/bin/
+GAME/darkvault_presplash.png
+GAME/darkvault_presplash.jpg
+GAME/darkvault.ico
+GAME/android_build.json
+__pycache__/
+GAME/__pycache__/
+GAME/user_settings.json
+public/
